@@ -30,6 +30,24 @@ jobs:
           rm -rf /tmp/skymod-source/.github
           cp -a /tmp/skymod-source/. .
 
+      - name: Apply TypeScript fixes
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("src/App.tsx")
+          s = p.read_text()
+          replacements = {
+              "onRemove={async track =>": "onRemove={async (track: Track) =>",
+              "onTheme={id =>": "onTheme={(id: SkyTheme) =>",
+              "seek(e.target.value)": "seek(Number(e.target.value))",
+          }
+          for old, new in replacements.items():
+              if old not in s:
+                  raise SystemExit(f"Expected source snippet missing: {old}")
+              s = s.replace(old, new, 1)
+          p.write_text(s)
+          PY
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
